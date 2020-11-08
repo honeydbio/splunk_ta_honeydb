@@ -1,0 +1,99 @@
+<dashboard>
+  <form refresh="30"></form>
+  <label>HoneyDB BadHosts</label>
+  <row>
+    <panel>
+      <title>Top 10 Remote Hosts</title>
+      <chart>
+        <search>
+          <query>sourcetype="honeydb_badhosts"
+|  sort -last_seen -count  | fields remote_host, count, last_seen
+| stats sum(count) as event_count by last_seen remote_host 
+| sort -event_count 
+| fields remote_host, event_count
+| head 10</query>
+          <earliest>rt-30m</earliest>
+          <latest>rt</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Activity By Last Seen Date</title>
+      <chart>
+        <search>
+          <query>sourcetype="honeydb_badhosts" 
+| sort -_time, last_seen
+| dedup last_seen remote_host 
+| stats sum(count) as event_count by last_seen 
+| sort -last_seen 
+| fields last_seen, event_count</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Number of Remote Hosts By Last Seen Date</title>
+      <chart>
+        <title>Last 7 Days</title>
+        <search>
+          <query>sourcetype="honeydb_badhosts" | fields remote_host, count, last_seen 
+| stats distinct_count(remote_host) as remote_hosts by last_seen</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+        <option name="height">100</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 Remote Hosts</title>
+      <table>
+        <search>
+          <query>sourcetype="honeydb_badhosts"
+|  sort -last_seen -count  | fields remote_host, count, last_seen
+| stats sum(count) as event_count by last_seen remote_host 
+| sort -event_count 
+| fields remote_host, event_count
+| head 10</query>
+          <earliest>rt-30m</earliest>
+          <latest>rt</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <drilldown>
+          <link target="_blank">search?q=sourcetype="honeydb_sensor_data" remote_host="$row.remote_host$"&amp;earliest=-7d@h&amp;latest=now</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Activity By Last Seen Date</title>
+      <table>
+        <search>
+          <query>sourcetype="honeydb_badhosts"
+| sort -_time, last_seen
+| dedup last_seen remote_host 
+| stats sum(count) as event_count by last_seen 
+| sort -last_seen 
+| fields last_seen, event_count</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
