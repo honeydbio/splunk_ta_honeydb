@@ -37,7 +37,7 @@ if __name__ == "__main__":
     except:
         logger = setup_logger(logging.ERROR)
         logger.error("Bad Hosts Error: HoneyDB args file missing : ./%s ", jsonfile)
-        exit()
+        sys.exit()
 
     # parse file
     try:
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     except ValueError as jsonerror:
         logger = setup_logger(logging.ERROR)
         logger.error("Bad Hosts Error: File %s data read error %s ", jsonfile, jsonerror)
-        exit()
+        sys.exit()
 
     if ("X-HoneyDb-ApiId" in args) and ("X-HoneyDb-ApiKey" in args):
         apiId = str(args['X-HoneyDb-ApiId'])
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     else:
         logger = setup_logger(logging.ERROR)
         logger.error("Bad Hosts Error: HoneyDB args X-HoneyDb-ApiId OR/AND X-HoneyDb-ApiKey missing in file : ./%s ", jsonfile)
-        exit()
+        sys.exit()
 
     if (apiId and apiKey):
         headers = {
@@ -81,8 +81,8 @@ if __name__ == "__main__":
         except ValueError:
             logger = setup_logger(logging.ERROR)
             logger.error("Bad Hosts API call failed . Please check your authentication key or check with HoneyDB Support team. API response code: %s", response.status_code)
-            exit()
+            sys.exit()
     else:
         logger = setup_logger(logging.ERROR)
         logger.error("HoneyDB API key ID and Secret Key can not be blank. Please Enter the right keys")
-        exit()
+        sys.exit()

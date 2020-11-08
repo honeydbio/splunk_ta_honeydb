@@ -38,7 +38,7 @@ if __name__ == "__main__":
     except:
         logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: HoneyDB args file missing : ./%s ", jsonfile)
-        exit()
+        sys.exit()
 
     # parse file
     try:
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     except ValueError as jsonerror:
         logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: File %s data read error %s ", jsonfile, jsonerror)
-        exit()
+        sys.exit()
 
     if ("X-HoneyDb-ApiId" in args) and ("X-HoneyDb-ApiKey" in args):
         apiId = str(args['X-HoneyDb-ApiId'])
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     else:
         logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: HoneyDB args X-HoneyDb-ApiId OR/AND X-HoneyDb-ApiKey missing in file : ./%s ", jsonfile)
-        exit()
+        sys.exit()
 
     if (apiId and apiKey):
         headers = {
@@ -121,8 +121,8 @@ if __name__ == "__main__":
         except ValueError:
             logger = setup_logger(logging.ERROR)
             logger.error("Events API call failed . Please check your authentication key or check with HoneyDB support team. API response code : %s", response.status_code)
-            exit()
+            sys.exit()
     else:
         logger = setup_logger(logging.ERROR)
         logger.error("HoneyDB API ID and API Key can not be blank. Please add your API ID and Key to the honeydb.json file.")
-        exit()
+        sys.exit()
