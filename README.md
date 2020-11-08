@@ -51,3 +51,11 @@ _If you changed index name or sourcetype, please modify the above query accordin
 ## Dashboards
 
 1. Select splunk_ta_honeydb app in the Splunk UI. Go to Dashboards and click on __HoneyDB BadHosts__ or __HoneyDB Events__.
+
+### Bad Hosts
+
+![HoneyDB Bad Hosts](dashboard_badhosts.png)
+
+### Sensor Data (Events)
+
+![HoneyDB Sensor Data](dashboard_sensor_data.png)
