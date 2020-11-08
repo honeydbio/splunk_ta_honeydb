@@ -79,9 +79,9 @@ if __name__ == "__main__":
                 if from_id.strip() == "":
                     from_id = 0
 
-        except Exception as err:
+        except:
             logger = setup_logger(logging.ERROR)
-            logger.error("Sensor Data Error: problem initializing from_id file : ./%s %s", from_id_file, type(err))
+            logger.error("Sensor Data Error: problem initializing from_id file : ./%s", from_id_file)
 
         # init sensor_data_date with today's date
         today = date.today()
@@ -114,9 +114,9 @@ if __name__ == "__main__":
                     with open(from_id_file, 'w') as file_from_id:
                         file_from_id.write(eventjson[1]['from_id'])
 
-                except Exception as err:
+                except:
                     logger = setup_logger(logging.ERROR)
-                    logger.error("Sensor Data Error: problem writing from_id file : .%s %s", from_id_file, type(err))
+                    logger.error("Sensor Data Error: problem writing from_id file : .%s", from_id_file)
 
         except ValueError:
             logger = setup_logger(logging.ERROR)

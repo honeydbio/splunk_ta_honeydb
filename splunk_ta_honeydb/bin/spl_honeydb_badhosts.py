@@ -67,8 +67,8 @@ if __name__ == "__main__":
         response = requests.get(url, headers=headers)
 
         if response.status_code != 200:
-                logger = setup_logger(logging.ERROR)
-                logger.error("Bad Hosts Error: API error with status code: %s ", response.status_code)
+            logger = setup_logger(logging.ERROR)
+            logger.error("Bad Hosts Error: API error with status code: %s ", response.status_code)
 
         try:
             badhostsjson = response.json()
