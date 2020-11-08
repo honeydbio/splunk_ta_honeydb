@@ -106,5 +106,5 @@ venv.bak/
 
 splunk_ta_honeydb.tar.gz
 splunk-appinspect-latest.tar.gz
-splunk_ta_honeydb/bin/honeydb.json.dev
+honeydb.json.dev
 .DS_Store
