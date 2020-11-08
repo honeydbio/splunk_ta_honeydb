@@ -1,4 +1,4 @@
-name: Splunk App Inspect (Python 2)
+name: Splunk App (Python 2)
 
 on: [push]
 
