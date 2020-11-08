@@ -3,7 +3,7 @@ package:
 
 inspect:
 	wget https://download.splunk.com/misc/appinspect/splunk-appinspect-latest.tar.gz
-	virtualenv .env
+	python3 -m venv .env
 	.env/bin/pip -V
 	.env/bin/pip install splunk-appinspect-latest.tar.gz
 	.env/bin/splunk-appinspect inspect splunk_ta_honeydb.tar.gz	
