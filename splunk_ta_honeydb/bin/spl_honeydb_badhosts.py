@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 for i in badhostsjson:
                     ### Send Data to Splunk ###
                     data_j = json.dumps(i)
-                    print data_j
+                    print(data_j)
 
         except ValueError:
             logger = setup_logger(logging.ERROR)

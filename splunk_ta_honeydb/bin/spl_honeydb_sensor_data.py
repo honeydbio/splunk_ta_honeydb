@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 for i in eventjson[0]['data']:
                     ### Send Data to Splunk ###
                     data_j = json.dumps(i)
-                    print data_j
+                    print(data_j)
 
                 try:
                     with open(from_id_file, 'w') as file_from_id:
