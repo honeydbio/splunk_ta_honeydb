@@ -18,7 +18,8 @@ __Configuration file: `bin/honeydb.json`__
 
     {
         "X-HoneyDb-ApiId": "<your key ID>",
-        "X-HoneyDb-ApiKey": "<your secret key>"
+        "X-HoneyDb-ApiKey": "<your secret key>",
+        "subscription": "<your subscription plan>"
     }
 
 ## Create Indexes
