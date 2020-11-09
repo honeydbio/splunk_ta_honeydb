@@ -7,7 +7,7 @@ import json
 import logging
 import logging.handlers
 import requests
-from splunk.clilib import cli_common as cli
+from splunk.clilib import cli_common as cli # pylint: disable=import-error
 
 
 def setup_logger(level):
@@ -30,7 +30,7 @@ def setup_logger(level):
 if __name__ == "__main__":
 
     ## get splunk app version
-    version = cli.getConfKeyValue("app","launcher","version")
+    version = cli.getConfKeyValue("app", "launcher", "version")
 
     ## Check if honeydb.json file exists ##
     jsonfile = os.path.join(sys.path[0], "honeydb.json")

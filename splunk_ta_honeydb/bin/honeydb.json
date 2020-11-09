@@ -1,4 +1,5 @@
 {
 	"X-HoneyDb-ApiId": "",
-	"X-HoneyDb-ApiKey": ""
+	"X-HoneyDb-ApiKey": "",
+	"subscription": "community"
 }

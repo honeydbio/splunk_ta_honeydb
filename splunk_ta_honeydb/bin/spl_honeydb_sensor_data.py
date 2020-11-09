@@ -8,7 +8,7 @@ import json
 import logging
 import logging.handlers
 import requests
-from splunk.clilib import cli_common as cli
+from splunk.clilib import cli_common as cli # pylint: disable=import-error
 
 
 def setup_logger(level):
@@ -31,7 +31,7 @@ def setup_logger(level):
 if __name__ == "__main__":
 
     ## get splunk app version
-    version = cli.getConfKeyValue("app","launcher","version")
+    version = cli.getConfKeyValue("app", "launcher", "version")
 
     ## Check if honeydb.json file exists ##
     jsonfile = os.path.join(sys.path[0], "honeydb.json")
@@ -55,6 +55,12 @@ if __name__ == "__main__":
     if ("X-HoneyDb-ApiId" in args) and ("X-HoneyDb-ApiKey" in args):
         apiId = str(args['X-HoneyDb-ApiId'])
         apiKey = str(args['X-HoneyDb-ApiKey'])
+
+        subscription = "community"
+        if "subscription" in args:
+            subscription = args['subscription']
+
+
     else:
         logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: HoneyDB args X-HoneyDb-ApiId OR/AND X-HoneyDb-ApiKey missing in file : ./%s ", jsonfile)
@@ -88,13 +94,18 @@ if __name__ == "__main__":
             logger = setup_logger(logging.ERROR)
             logger.error("Sensor Data Error: problem initializing from_id file : ./%s", from_id_file)
 
+        # determine if data will be filtered based on subscription
+        mydata = "/mydata"
+        if subscription.lower() == "gold":
+            mydata = ""
+
         # init sensor_data_date with today's date
         today = date.today()
         sensor_data_date = today.strftime("%Y-%m-%d")
 
         # call api
         try:
-            url = 'https://honeydb.io/api/sensor-data?sensor-data-date={}&from-id={}'.format(sensor_data_date, from_id)
+            url = 'https://honeydb.io/api/sensor-data{}?sensor-data-date={}&from-id={}'.format(mydata, sensor_data_date, from_id)
             logger = setup_logger(logging.INFO)
             logger.info("Sensor Data: Calling API with : %s ", url)
             response = requests.get(url, headers=headers)
