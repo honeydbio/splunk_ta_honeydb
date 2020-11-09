@@ -7,6 +7,7 @@ import json
 import logging
 import logging.handlers
 import requests
+from splunk.clilib import cli_common as cli
 
 
 def setup_logger(level):
@@ -27,6 +28,9 @@ def setup_logger(level):
 ### MAIN FUNCTION ###
 
 if __name__ == "__main__":
+
+    ## get splunk app version
+    version = cli.getConfKeyValue("app","launcher","version")
 
     ## Check if honeydb.json file exists ##
     jsonfile = os.path.join(sys.path[0], "honeydb.json")
@@ -59,6 +63,7 @@ if __name__ == "__main__":
         headers = {
             'X-HoneyDb-ApiId': apiId,
             'X-HoneyDb-ApiKey': apiKey,
+            'User-Agent': 'HoneyDB Splunk App/{}'.format(version)
         }
 
         url = 'https://honeydb.io/api/bad-hosts'
