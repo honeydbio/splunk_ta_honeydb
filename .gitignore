@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -108,3 +108,4 @@ splunk_ta_honeydb.tar.gz
 splunk-appinspect-latest.tar.gz
 honeydb.json.dev
 .DS_Store
+splunk_ta_honeydb/bin/from_id

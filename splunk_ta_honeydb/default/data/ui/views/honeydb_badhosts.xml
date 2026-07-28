@@ -1,5 +1,4 @@
-<dashboard>
-  <form refresh="30"></form>
+<dashboard version="1.1" refresh="30">
   <label>HoneyDB BadHosts</label>
   <row>
     <panel>
@@ -12,8 +11,8 @@
 | sort -event_count 
 | fields remote_host, event_count
 | head 10</query>
-          <earliest>rt-30m</earliest>
-          <latest>rt</latest>
+          <earliest>-30m</earliest>
+          <latest>now</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -68,8 +67,8 @@
 | sort -event_count 
 | fields remote_host, event_count
 | head 10</query>
-          <earliest>rt-30m</earliest>
-          <latest>rt</latest>
+          <earliest>-30m</earliest>
+          <latest>now</latest>
         </search>
         <option name="drilldown">cell</option>
         <drilldown>

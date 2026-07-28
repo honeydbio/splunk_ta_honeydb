@@ -1,5 +1,4 @@
-<dashboard>
-  <form refresh="30"></form>
+<dashboard version="1.1" refresh="30">
   <label>HoneyDB Events</label>
   <row>
     <panel>
@@ -40,14 +39,6 @@
   <row>
     <panel>
       <title>Events By Service</title>
-      <html>
-         <style>
-           Honeydb_events_service{
-             width:10% !important;
-           }
-           
-         </style>
-       </html>
       <chart>
         <title>Last 7 Days</title>
         <search>
