@@ -12,7 +12,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # use the requests library vendored under the app's lib/ directory
 sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "lib"))
-import requests # pylint: disable=wrong-import-position
 import honeydb_common # pylint: disable=wrong-import-position
 from splunk.clilib import cli_common as cli # pylint: disable=import-error,wrong-import-position
 
@@ -131,10 +130,8 @@ if __name__ == "__main__":
             url = f'https://honeydb.io/api/sensor-data{mydata}?sensor-data-date={sensor_data_date}&from-id={from_id}'
             logger.info("Sensor Data: Calling API with : %s ", url)
 
-            try:
-                response = requests.get(url, headers=headers, timeout=30)
-            except requests.exceptions.RequestException as requesterror:
-                logger.error("Sensor Data Error: problem calling API : %s : %s ", url, requesterror)
+            response = honeydb_common.get_with_retry(url, headers, logger, "Sensor Data")
+            if response is None:
                 sys.exit()
 
             if response.status_code != 200:

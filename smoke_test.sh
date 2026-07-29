@@ -44,7 +44,7 @@ docker exec -u splunk splunk-smoke tail -10 /opt/splunk/var/log/splunk/honeydb.l
 echo '--- event counts by sourcetype ---'
 docker exec -u splunk splunk-smoke /opt/splunk/bin/splunk search 'index=honeydb | stats count by sourcetype' -auth admin:"$SPLUNK_PW"
 echo '--- from_id checkpoint (first-run regression check) ---'
-docker exec -u splunk splunk-smoke cat /opt/splunk/etc/apps/splunk_ta_honeydb/bin/from_id; echo
+docker exec -u splunk splunk-smoke cat /opt/splunk/var/lib/splunk/splunk_ta_honeydb/from_id; echo
 
 echo "Dashboards: open http://localhost:8000 (admin / $SPLUNK_PW), app splunk_ta_honeydb."
 echo 'Cleanup: docker rm -f splunk-smoke'

@@ -9,12 +9,51 @@ importing this module (it needs the vendored requests library).
 import os
 import sys
 import json
+import time
 
 import requests # pylint: disable=wrong-import-order
 import urllib3 # pylint: disable=wrong-import-order
 
 REALM = "splunk_ta_honeydb"
 APP = "splunk_ta_honeydb"
+
+# retry policy for HoneyDB API calls
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+RETRY_AFTER_CAP = 30
+
+
+def get_with_retry(url, headers, logger, label, retries=3):
+    '''
+    GET with bounded exponential backoff on transient failures
+    (connection errors/timeouts, HTTP 429/5xx). Honors a numeric
+    Retry-After header, capped at RETRY_AFTER_CAP seconds. Returns the
+    final Response, or None when every attempt raised an exception.
+    '''
+    response = None
+    for attempt in range(retries + 1):
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+        except requests.exceptions.RequestException as requesterror:
+            response = None
+            if attempt == retries:
+                logger.error("%s Error: problem calling API : %s : %s ", label, url, requesterror)
+                return None
+            delay = 2 ** (attempt + 1)
+            logger.warning("%s: API request failed (attempt %s: %s); retrying in %ss", label, attempt + 1, requesterror, delay)
+            time.sleep(delay)
+            continue
+
+        if response.status_code not in RETRY_STATUSES or attempt == retries:
+            return response
+
+        delay = 2 ** (attempt + 1)
+        retry_after = response.headers.get("Retry-After", "")
+        if retry_after.isdigit():
+            delay = min(int(retry_after), RETRY_AFTER_CAP)
+        logger.warning("%s: API returned status %s (attempt %s); retrying in %ss", label, response.status_code, attempt + 1, delay)
+        time.sleep(delay)
+
+    return response
 
 
 def get_session_key():
