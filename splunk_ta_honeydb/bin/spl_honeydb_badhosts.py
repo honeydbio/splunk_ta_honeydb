@@ -7,8 +7,10 @@ import json
 import logging
 import logging.handlers
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # use the requests library vendored under the app's lib/ directory
-sys.path.insert(0, os.path.join(sys.path[0], "..", "lib"))
+sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "lib"))
 import requests # pylint: disable=wrong-import-position
 from splunk.clilib import cli_common as cli # pylint: disable=import-error,wrong-import-position
 
@@ -20,7 +22,7 @@ def setup_logger(level):
     logger = logging.getLogger('')
     logger.propagate = False # Prevent the log messages from being duplicated in the python.log file
     logger.setLevel(level)
-    log_file = os.path.join(sys.path[0], "..", "..", "..", "..", 'var', 'log', 'splunk', 'honeydb.log')
+    log_file = os.path.join(SCRIPT_DIR, "..", "..", "..", "..", 'var', 'log', 'splunk', 'honeydb.log')
     file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=25000000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     version = cli.getConfKeyValue("app", "launcher", "version")
 
     ## Check if honeydb.json file exists ##
-    jsonfile = os.path.join(sys.path[0], "honeydb.json")
+    jsonfile = os.path.join(SCRIPT_DIR, "honeydb.json")
 
     try:
         with open(jsonfile, 'r', encoding='utf-8') as argfile:
