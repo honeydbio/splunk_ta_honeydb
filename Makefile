@@ -16,6 +16,9 @@ inspect:
 	.env/bin/pip install splunk-appinspect
 	.env/bin/splunk-appinspect inspect splunk_ta_honeydb.tar.gz
 
+smoke-test:
+	sh smoke_test.sh
+
 lint:
 	pylint splunk_ta_honeydb/bin/spl_honeydb_badhosts.py
 	pylint splunk_ta_honeydb/bin/spl_honeydb_sensor_data.py
