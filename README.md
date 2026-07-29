@@ -9,6 +9,20 @@ the scripted inputs run under Splunk's bundled Python 3 interpreter. The app
 ships its own copy of the `requests` library under `lib/`, so it has no
 dependency on Splunk's bundled site-packages.
 
+## Enriching your own data
+
+The app maintains a KV-store lookup (`honeydb_badhosts_lookup`) of the
+current bad-hosts list, refreshed every 30 minutes by the scheduled search
+"HoneyDB - Update BadHosts Lookup". Use the `honeydb_badhost(<field>)`
+macro to annotate any events with HoneyDB reputation:
+
+    index=firewall action=allowed
+    | `honeydb_badhost(src_ip)`
+    | where isnotnull(honeydb_count)
+    | table _time, src_ip, honeydb_count, honeydb_last_seen
+
+Matched events gain `honeydb_count` (sightings) and `honeydb_last_seen`.
+
 ## CIM compliance
 
 `honeydb_sensor_data` events are mapped to the CIM **Intrusion Detection**
