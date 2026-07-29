@@ -2,6 +2,20 @@
 
 This Splunk App pulls bad host and sensor data form the HoneyDB API.
 
+## Supported Splunk versions
+
+Splunk Enterprise 9.x and 10.x. Dashboards are Simple XML version 1.1, and
+the scripted inputs run under Splunk's bundled Python 3 interpreter. The app
+ships its own copy of the `requests` library under `lib/`, so it has no
+dependency on Splunk's bundled site-packages.
+
+## Upgrading from 1.x
+
+Version 2.0.0 is a drop-in replacement. Your configuration in
+`bin/honeydb.json` and the `bin/from_id` checkpoint file are unchanged — if
+you replace the app directory wholesale, copy those two files over to the
+new version.
+
 ## Install
 
 Place this app on your search head under `$SPLUNK_HOME/etc/apps/`

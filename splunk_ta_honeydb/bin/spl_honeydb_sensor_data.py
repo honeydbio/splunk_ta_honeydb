@@ -3,12 +3,17 @@ Send HoneyDB Sensor Data to Splunk
 '''
 import os
 import sys
-from datetime import date
+from datetime import datetime, timezone
 import json
 import logging
 import logging.handlers
-import requests
-from splunk.clilib import cli_common as cli # pylint: disable=import-error
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# use the requests library vendored under the app's lib/ directory
+sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "lib"))
+import requests # pylint: disable=wrong-import-position
+from splunk.clilib import cli_common as cli # pylint: disable=import-error,wrong-import-position
 
 
 def setup_logger(level):
@@ -18,7 +23,7 @@ def setup_logger(level):
     logger = logging.getLogger('')
     logger.propagate = False # Prevent the log messages from being duplicated in the python.log file
     logger.setLevel(level)
-    log_file = os.path.join(sys.path[0], "..", "..", "..", "..", 'var', 'log', 'splunk', 'honeydb.log')
+    log_file = os.path.join(SCRIPT_DIR, "..", "..", "..", "..", 'var', 'log', 'splunk', 'honeydb.log')
     file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=25000000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
@@ -30,17 +35,18 @@ def setup_logger(level):
 
 if __name__ == "__main__":
 
+    logger = setup_logger(logging.INFO)
+
     ## get splunk app version
     version = cli.getConfKeyValue("app", "launcher", "version")
 
     ## Check if honeydb.json file exists ##
-    jsonfile = os.path.join(sys.path[0], "honeydb.json")
+    jsonfile = os.path.join(SCRIPT_DIR, "honeydb.json")
 
     try:
-        with open(jsonfile, 'r') as argfile:
+        with open(jsonfile, 'r', encoding='utf-8') as argfile:
             data = argfile.read()
-    except:
-        logger = setup_logger(logging.ERROR)
+    except OSError:
         logger.error("Sensor Data Error: HoneyDB args file missing : ./%s ", jsonfile)
         sys.exit()
 
@@ -48,7 +54,6 @@ if __name__ == "__main__":
     try:
         args = json.loads(data)
     except ValueError as jsonerror:
-        logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: File %s data read error %s ", jsonfile, jsonerror)
         sys.exit()
 
@@ -62,7 +67,6 @@ if __name__ == "__main__":
 
 
     else:
-        logger = setup_logger(logging.ERROR)
         logger.error("Sensor Data Error: HoneyDB args X-HoneyDb-ApiId OR/AND X-HoneyDb-ApiKey missing in file : ./%s ", jsonfile)
         sys.exit()
 
@@ -70,28 +74,27 @@ if __name__ == "__main__":
         headers = {
             'X-HoneyDb-ApiId': apiId,
             'X-HoneyDb-ApiKey': apiKey,
-            'User-Agent': 'HoneyDB Splunk App/{}'.format(version)
+            'User-Agent': f'HoneyDB Splunk App/{version}'
         }
 
         # init from_id
-        from_id = 0
+        from_id = "0"
         # set path to from_id file
-        from_id_file = os.path.join(sys.path[0], "from_id")
+        from_id_file = os.path.join(SCRIPT_DIR, "from_id")
 
         try:
             # check if from_id file exists, if not create it
             if not os.path.exists(from_id_file):
-                with open(from_id_file, 'w') as file_from_id:
+                with open(from_id_file, 'w', encoding='utf-8') as file_from_id:
                     file_from_id.write(from_id)
 
-            with open(from_id_file, 'r') as file_from_id:
+            with open(from_id_file, 'r', encoding='utf-8') as file_from_id:
                 from_id = file_from_id.read()
                 # in case there was an issue initializing file with a value
                 if from_id.strip() == "":
-                    from_id = 0
+                    from_id = "0"
 
-        except:
-            logger = setup_logger(logging.ERROR)
+        except OSError:
             logger.error("Sensor Data Error: problem initializing from_id file : ./%s", from_id_file)
 
         # determine if data will be filtered based on subscription
@@ -99,27 +102,32 @@ if __name__ == "__main__":
         if subscription.lower() == "gold":
             mydata = ""
 
-        # init sensor_data_date with today's date
-        today = date.today()
-        sensor_data_date = today.strftime("%Y-%m-%d")
+        # init sensor_data_date with today's date (UTC, to match the feed)
+        sensor_data_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         # call api
+        url = f'https://honeydb.io/api/sensor-data{mydata}?sensor-data-date={sensor_data_date}&from-id={from_id}'
+        logger.info("Sensor Data: Calling API with : %s ", url)
+
         try:
-            url = 'https://honeydb.io/api/sensor-data{}?sensor-data-date={}&from-id={}'.format(mydata, sensor_data_date, from_id)
-            logger = setup_logger(logging.INFO)
-            logger.info("Sensor Data: Calling API with : %s ", url)
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=30)
+        except requests.exceptions.RequestException as requesterror:
+            logger.error("Sensor Data Error: problem calling API : %s : %s ", url, requesterror)
+            sys.exit()
 
-            if response.status_code != 200:
-                logger = setup_logger(logging.ERROR)
-                logger.error("Sensor Data Error: API error with status code: %s ", response.status_code)
-
-        except:
-            logger = setup_logger(logging.ERROR)
-            logger.error("Sensor Data Error: problem calling API : %s ", url)
+        if response.status_code != 200:
+            logger.error("Sensor Data Error: API error with status code: %s ", response.status_code)
+            sys.exit()
 
         try:
             eventjson = response.json()
+        except ValueError:
+            logger.error("Events API call failed . Please check your authentication key or check with HoneyDB support team. API response code : %s", response.status_code)
+            sys.exit()
+
+        # events are printed first and the checkpoint updated last: a failed
+        # checkpoint write re-emits events next run (at-least-once, no data loss)
+        try:
             if eventjson:
                 for i in eventjson[0]['data']:
                     ### Send Data to Splunk ###
@@ -127,18 +135,15 @@ if __name__ == "__main__":
                     print(data_j)
 
                 try:
-                    with open(from_id_file, 'w') as file_from_id:
-                        file_from_id.write(eventjson[1]['from_id'])
+                    with open(from_id_file, 'w', encoding='utf-8') as file_from_id:
+                        file_from_id.write(str(eventjson[1]['from_id']))
 
-                except:
-                    logger = setup_logger(logging.ERROR)
+                except OSError:
                     logger.error("Sensor Data Error: problem writing from_id file : .%s", from_id_file)
 
-        except ValueError:
-            logger = setup_logger(logging.ERROR)
-            logger.error("Events API call failed . Please check your authentication key or check with HoneyDB support team. API response code : %s", response.status_code)
+        except (IndexError, KeyError, TypeError) as shapeerror:
+            logger.error("Sensor Data Error: unexpected API response structure : %s", shapeerror)
             sys.exit()
     else:
-        logger = setup_logger(logging.ERROR)
         logger.error("HoneyDB API ID and API Key can not be blank. Please add your API ID and Key to the honeydb.json file.")
         sys.exit()
