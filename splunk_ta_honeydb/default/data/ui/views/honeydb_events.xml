@@ -6,7 +6,7 @@
       <chart>
         <title>Last 24 hours</title>
         <search>
-          <query>index=honeydb sourcetype=honeydb_sensor_data | stats count as event_count by service 
+          <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count as event_count by service 
 | sort -event_count 
 |  head 10
 | fields service, event_count</query>
@@ -23,7 +23,7 @@
       <chart>
         <title>Last 24 hours</title>
         <search>
-          <query>index=honeydb sourcetype=honeydb_sensor_data | stats count as event_count by remote_host 
+          <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count as event_count by remote_host 
 | sort -event_count 
 |  head 10
 | fields remote_host, event_count</query>
@@ -42,7 +42,7 @@
       <chart>
         <title>Last 7 Days</title>
         <search>
-          <query>index=honeydb sourcetype=honeydb_sensor_data | timechart count by service</query>
+          <query>`honeydb_index` sourcetype=honeydb_sensor_data | timechart count by service</query>
           <earliest>-7d@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -88,7 +88,7 @@
       <chart>
         <title>Last 7 Days</title>
         <search>
-          <query>index=honeydb sourcetype=honeydb_sensor_data | timechart count by remote_host</query>
+          <query>`honeydb_index` sourcetype=honeydb_sensor_data | timechart count by remote_host</query>
           <earliest>-7d@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -134,7 +134,7 @@
       <table>
         <title>Last 24 Hours</title>
         <search>
-          <query>index=honeydb sourcetype=honeydb_sensor_data | stats count by date, remote_host, service</query>
+          <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count by date, remote_host, service</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
