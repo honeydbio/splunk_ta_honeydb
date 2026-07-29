@@ -110,3 +110,4 @@ splunk-appinspect-latest.tar.gz
 honeydb.json.dev
 .DS_Store
 splunk_ta_honeydb/bin/from_id
+output/

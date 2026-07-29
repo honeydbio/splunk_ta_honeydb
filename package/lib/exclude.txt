@@ -1,0 +1,13 @@
+# Exclude the following packages from being installed in the add-on.
+# The OpenTelemetry/gRPC stack is an optional dependency of
+# solnlib.observability (which this add-on does not use); grpcio ships
+# platform-specific binaries that must not be packaged.
+grpcio
+googleapis-common-protos
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-proto
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-exporter-otlp-proto-common
+opentelemetry-semantic-conventions
+protobuf

@@ -1,1 +1,0 @@
-See https://github.com/honeydbio/splunk_ta_honeydb/blob/main/README.md
