@@ -1,13 +1,78 @@
 # Splunk TA for HoneyDB
 
-This Splunk App pulls bad host and sensor data form the HoneyDB API.
+This Splunk App pulls bad host and sensor data from the HoneyDB API.
+
+Version 3.x is built on Splunk's UCC framework: configuration is done in
+the Splunk UI, credentials are stored encrypted, and the data inputs are
+modular inputs.
 
 ## Supported Splunk versions
 
-Splunk Enterprise 9.x and 10.x. Dashboards are Simple XML version 1.1, and
-the scripted inputs run under Splunk's bundled Python 3 interpreter. The app
-ships its own copy of the `requests` library under `lib/`, so it has no
-dependency on Splunk's bundled site-packages.
+Splunk Enterprise 9.x and 10.x. Dashboards are Simple XML version 1.1 and
+inputs run under Splunk's bundled Python 3.
+
+## Install
+
+Install a release tarball (`splunk_ta_honeydb-<version>.tar.gz`) via
+Splunk Web ("Install app from file"), or place the built app on your
+search head under `$SPLUNK_HOME/etc/apps/`.
+
+To build from source:
+
+    make package     # requires python3.12; produces splunk_ta_honeydb-3.0.0.tar.gz
+
+Create the `honeydb` index on your indexer (see Create Indexes below).
+
+## Configure
+
+1. Open the **splunk_ta_honeydb** app > **Configuration** > **Accounts**
+   and add an account with your HoneyDB API ID and API Key
+   (honeydb.io > Threat Information > API). The key is stored encrypted.
+   Name the account `honeydb` to use the shipped inputs as-is.
+2. Go to **Inputs** and enable (or create) the two inputs:
+   - **HoneyDB Bad Hosts** — polls the bad-hosts feed (default every 30
+     minutes).
+   - **HoneyDB Sensor Data** — polls sensor data (default every 60
+     seconds), paginated with checkpointing.
+
+## Upgrading from 2.x
+
+- Credentials: `bin/honeydb.json` and the 2.1 credential-store realm are
+  no longer read — enter your API credentials once in the Configuration
+  UI.
+- The sensor-data checkpoint location and format are unchanged
+  (`$SPLUNK_HOME/var/lib/splunk/splunk_ta_honeydb/from_id`), so ingestion
+  resumes exactly where 2.1 left off.
+- Dashboards, sourcetypes, the index macro, CIM mappings, and the
+  bad-hosts lookup are unchanged.
+
+## Create Indexes
+
+Create indexes.conf on your indexer with the default index name "honeydb". Below is a sample:
+
+    [honeydb]
+    homePath   = $SPLUNK_DB/honeydb/db
+    coldPath   = $SPLUNK_DB/honeydb/colddb 
+    thawedPath = $SPLUNK_DB/honeydb/thaweddb
+    #1 day retention 
+    frozenTimePeriodInSecs = 86400
+    #14 day retention
+    #frozenTimePeriodInSecs = 1209600
+
+__**NOTE:__ If you change the index name, select it on each input in the
+Inputs UI and override the dashboard search scope once in
+`local/macros.conf` (survives upgrades):
+
+    [honeydb_index]
+    definition = index=<new index name>
+
+## Viewing data in Splunk
+
+sourcetype="honeydb_badhosts"
+
+sourcetype="honeydb_sensor_data"
+
+_If you changed index name or sourcetype, please modify the above query accordingly._
 
 ## Enriching your own data
 
@@ -43,78 +108,12 @@ honeypot's identity. `honeydb_badhosts` records are reputation data, not
 attack events: they get `src` and `vendor_product` aliases but are
 intentionally not tagged into the data model.
 
-## Upgrading from 1.x
-
-Version 2.x is a drop-in replacement. Your configuration in
-`bin/honeydb.json` keeps working (see the credential store above for the
-preferred method — if you replace the app directory wholesale, copy
-`bin/honeydb.json` over or create a credential-store entry). The sensor-data
-checkpoint now lives at `$SPLUNK_HOME/var/lib/splunk/splunk_ta_honeydb/from_id`
-(outside the app directory, so upgrades can't lose it); a legacy
-`bin/from_id` file is migrated there automatically on first run.
-
-## Install
-
-Place this app on your search head under `$SPLUNK_HOME/etc/apps/`
-Create the index on your indexer, see Create Indexes section below for instructions.
-
-In order for the app to pull data from HoneyDB you must configure your API credentials.
-
-**Recommended: Splunk credential store (encrypted).** Create a credential in
-the app's context with realm `splunk_ta_honeydb`, username = your API ID,
-password = your API Key:
-
-    curl -k -u admin https://localhost:8089/servicesNS/nobody/splunk_ta_honeydb/storage/passwords \
-        -d realm=splunk_ta_honeydb -d name=<your API ID> -d password="<your API Key>"
-
-The inputs read the store via the session key provided by
-`passAuth = splunk-system-user` — no secret is written to disk. The
-`subscription` setting (not a secret) still lives in `bin/honeydb.json`.
-
-**Deprecated fallback: `bin/honeydb.json`.** If no credential-store entry
-exists, the app reads API keys from `bin/honeydb.json` as in earlier
-versions. Existing installs keep working unchanged; `honeydb.log` states
-which source was used.
-
-__Configuration file: `bin/honeydb.json`__
-
-    {
-        "X-HoneyDb-ApiId": "<your key ID>",
-        "X-HoneyDb-ApiKey": "<your secret key>",
-        "subscription": "<your subscription plan>"
-    }
-
-## Create Indexes
-
-Create indexes.conf on your indexer with the default index name "honeydb" Below is the sample of index:
-
-    [honeydb]
-    homePath   = $SPLUNK_DB/honeydb/db
-    coldPath   = $SPLUNK_DB/honeydb/colddb 
-    thawedPath = $SPLUNK_DB/honeydb/thaweddb
-    #1 day retention 
-    frozenTimePeriodInSecs = 86400
-    #14 day retention
-    #frozenTimePeriodInSecs = 1209600
-
-__**NOTE:__ If you change the index name, update `default/inputs.conf` to
-reflect the new index name (e.g. `index = <new index name>`) and override
-the dashboard search scope once in `local/macros.conf` (survives upgrades):
-
-    [honeydb_index]
-    definition = index=<new index name>
-
-## Viewing data in Splunk
-
-sourcetype="honeydb_badhosts"
-
-sourcetype="honeydb_sensor_data"
-
-_If you changed index name or sourcetype, please modify the above query accordingly._
-
 ## Troubleshooting
 
-- You can view Splunk app error messages by querying `index=_internal source="*splunk/honeydb.log"` or `index=_internal source = *splunkd.log`
+- Input logs: `index=_internal source="*splunk_ta_honeydb*.log"` (one log
+  file per input under `$SPLUNK_HOME/var/log/splunk/`), or
+  `index=_internal source=*splunkd.log`.
+- Log level is configurable on the add-on's Configuration > Logging tab.
 
 ## Dashboards
 
@@ -127,3 +126,12 @@ _If you changed index name or sourcetype, please modify the above query accordin
 ### Sensor Data (Events)
 
 ![HoneyDB Sensor Data](dashboard_sensor_data.png)
+
+## Development
+
+    make test        # unit tests (no Splunk needed)
+    make lint        # pylint on package/bin
+    make build       # ucc-gen build into output/
+    make package     # build + tarball
+    make inspect     # splunk-appinspect on the tarball
+    make smoke-test  # end-to-end Docker validation (needs honeydb.json.dev)

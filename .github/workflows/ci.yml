@@ -9,19 +9,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.11
+    - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install pylint requests
+        python-version: '3.12'
     - name: Unit tests
-      run: make test
+      run: make test PYTHON=python3
     - name: Lint
-      run: make lint
+      run: make lint PYTHON=python3
+    - name: Build and package
+      run: make package PYTHON=python3
     - name: Inspect package
-      run: |
-        make package
-        make inspect
+      run: make inspect PYTHON=python3

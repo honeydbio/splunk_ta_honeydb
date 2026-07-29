@@ -1,33 +1,41 @@
-REQUESTS_VERSION = 2.32.4
+VERSION = 3.0.0
+PYTHON ?= python3.12
+UCC_VENV = .uccenv
+APP_TARBALL = splunk_ta_honeydb-$(VERSION).tar.gz
 
-package:
-	tar --exclude='__pycache__' --exclude='*.pyc' --exclude='from_id' --exclude='.DS_Store' -czf splunk_ta_honeydb.tar.gz splunk_ta_honeydb
+$(UCC_VENV):
+	$(PYTHON) -m venv $(UCC_VENV)
+	$(UCC_VENV)/bin/pip install --upgrade pip
+	$(UCC_VENV)/bin/pip install splunk-add-on-ucc-framework requests pylint
 
-vendor:
-	rm -rf splunk_ta_honeydb/lib
-	pip3 install --target splunk_ta_honeydb/lib --only-binary=:all: --implementation py --no-compile requests==$(REQUESTS_VERSION)
-	rm -rf splunk_ta_honeydb/lib/bin
-	find splunk_ta_honeydb/lib -name __pycache__ -type d -exec rm -rf {} +
-	find splunk_ta_honeydb/lib -type f -exec chmod 644 {} +
+build: $(UCC_VENV)
+	find package tests -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
+	. $(UCC_VENV)/bin/activate && ucc-gen build --ta-version $(VERSION)
+	$(UCC_VENV)/bin/python scripts/patch_output.py
+
+package: build
+	. $(UCC_VENV)/bin/activate && ucc-gen package --path output/splunk_ta_honeydb
 
 inspect:
-	python3 -m venv .env
+	$(PYTHON) -m venv .env
 	.env/bin/pip install --upgrade pip
 	.env/bin/pip install splunk-appinspect
-	.env/bin/splunk-appinspect inspect splunk_ta_honeydb.tar.gz
+	.env/bin/splunk-appinspect inspect $(APP_TARBALL)
 
-test:
-	python3 -m unittest discover -s tests -v
+test: $(UCC_VENV)
+	$(UCC_VENV)/bin/python -m unittest discover -s tests -v
+
+lint: $(UCC_VENV)
+	$(UCC_VENV)/bin/pylint package/bin/honeydb_utils.py
+	$(UCC_VENV)/bin/pylint package/bin/honeydb_account.py
+	$(UCC_VENV)/bin/pylint package/bin/honeydb_badhosts_helper.py
+	$(UCC_VENV)/bin/pylint package/bin/honeydb_sensor_data_helper.py
 
 smoke-test:
 	sh smoke_test.sh
 
-lint:
-	pylint splunk_ta_honeydb/bin/spl_honeydb_badhosts.py
-	pylint splunk_ta_honeydb/bin/spl_honeydb_sensor_data.py
-	pylint splunk_ta_honeydb/bin/honeydb_common.py
-
 clean:
-	-rm splunk_ta_honeydb.tar.gz
-	-rm splunk-appinspect-latest.tar.gz
+	-rm $(APP_TARBALL)
+	-rm -rf output
 	-rm -rf .env
+	-rm -rf $(UCC_VENV)

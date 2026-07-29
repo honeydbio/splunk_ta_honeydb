@@ -1,0 +1,8 @@
+<nav search_view="search" color="#65A637">
+    <view name="inputs" default="true" />
+    <view name="configuration" />
+    <view name="dashboard" />
+    <view name="honeydb_badhosts" />
+    <view name="honeydb_events" />
+    <view name="search" />
+</nav>
