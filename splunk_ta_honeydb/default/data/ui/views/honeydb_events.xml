@@ -1,17 +1,25 @@
-<dashboard version="1.1" refresh="30">
+<form version="1.1" refresh="30">
   <label>HoneyDB Events</label>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
   <row>
     <panel>
       <title>Top Services</title>
       <chart>
-        <title>Last 24 hours</title>
         <search>
           <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count as event_count by service 
 | sort -event_count 
 |  head 10
 | fields service, event_count</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -21,14 +29,13 @@
     <panel>
       <title>Top Remote Hosts</title>
       <chart>
-        <title>Last 24 hours</title>
         <search>
           <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count as event_count by remote_host 
 | sort -event_count 
 |  head 10
 | fields remote_host, event_count</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.drilldown">none</option>
@@ -40,11 +47,10 @@
     <panel>
       <title>Events By Service</title>
       <chart>
-        <title>Last 7 Days</title>
         <search>
           <query>`honeydb_index` sourcetype=honeydb_sensor_data | timechart count by service</query>
-          <earliest>-7d@h</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
@@ -86,11 +92,10 @@
     <panel>
       <title>Events By Host</title>
       <chart>
-        <title>Last 7 Days</title>
         <search>
           <query>`honeydb_index` sourcetype=honeydb_sensor_data | timechart count by remote_host</query>
-          <earliest>-7d@h</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
@@ -132,11 +137,10 @@
     <panel>
       <title>Latest Events</title>
       <table>
-        <title>Last 24 Hours</title>
         <search>
           <query>`honeydb_index` sourcetype=honeydb_sensor_data | stats count by date, remote_host, service</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">20</option>
@@ -149,4 +153,4 @@
       </table>
     </panel>
   </row>
-</dashboard>
+</form>
