@@ -9,6 +9,26 @@ the scripted inputs run under Splunk's bundled Python 3 interpreter. The app
 ships its own copy of the `requests` library under `lib/`, so it has no
 dependency on Splunk's bundled site-packages.
 
+## CIM compliance
+
+`honeydb_sensor_data` events are mapped to the CIM **Intrusion Detection**
+data model (tags `ids` + `attack`) with these fields:
+
+| CIM field | Source |
+|---|---|
+| `src` | `remote_host` |
+| `signature` | `event` + `service` (e.g. `CONNECT VNC`) |
+| `transport` | `protocol` (lowercased) |
+| `ids_type` | `network` |
+| `category` | `service` (lowercased) |
+| `severity` | `informational` |
+| `vendor_product` | `HoneyDB` |
+
+`dest` is not populated — the sensor-data feed does not include the
+honeypot's identity. `honeydb_badhosts` records are reputation data, not
+attack events: they get `src` and `vendor_product` aliases but are
+intentionally not tagged into the data model.
+
 ## Upgrading from 1.x
 
 Version 2.0.0 is a drop-in replacement. Your configuration in
