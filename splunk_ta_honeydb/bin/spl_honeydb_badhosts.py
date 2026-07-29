@@ -12,6 +12,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # use the requests library vendored under the app's lib/ directory
 sys.path.insert(0, os.path.join(SCRIPT_DIR, "..", "lib"))
 import requests # pylint: disable=wrong-import-position
+import honeydb_common # pylint: disable=wrong-import-position
 from splunk.clilib import cli_common as cli # pylint: disable=import-error,wrong-import-position
 
 
@@ -39,31 +40,11 @@ if __name__ == "__main__":
     ## get splunk app version
     version = cli.getConfKeyValue("app", "launcher", "version")
 
-    ## Check if honeydb.json file exists ##
-    jsonfile = os.path.join(SCRIPT_DIR, "honeydb.json")
-
-    try:
-        with open(jsonfile, 'r', encoding='utf-8') as argfile:
-            data = argfile.read()
-    except OSError:
-        logger.error("Bad Hosts Error: HoneyDB args file missing : ./%s ", jsonfile)
-        sys.exit()
-
-    # parse file
-    try:
-        args = json.loads(data)
-    except ValueError as jsonerror:
-        logger.error("Bad Hosts Error: File %s data read error %s ", jsonfile, jsonerror)
-        sys.exit()
-
-    if ("X-HoneyDb-ApiId" in args) and ("X-HoneyDb-ApiKey" in args):
-        apiId = str(args['X-HoneyDb-ApiId'])
-        apiKey = str(args['X-HoneyDb-ApiKey'])
-    else:
-        logger.error("Bad Hosts Error: HoneyDB args X-HoneyDb-ApiId OR/AND X-HoneyDb-ApiKey missing in file : ./%s ", jsonfile)
-        sys.exit()
+    ## load credentials: Splunk credential store first, honeydb.json fallback ##
+    apiId, apiKey, subscription, cred_source = honeydb_common.load_credentials(SCRIPT_DIR, cli, logger, "Bad Hosts")
 
     if (apiId and apiKey):
+        logger.info("Bad Hosts: using credentials from %s", cred_source)
         headers = {
             'X-HoneyDb-ApiId': apiId,
             'X-HoneyDb-ApiKey': apiKey,

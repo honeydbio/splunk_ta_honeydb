@@ -31,22 +31,36 @@ intentionally not tagged into the data model.
 
 ## Upgrading from 1.x
 
-Version 2.0.0 is a drop-in replacement. Your configuration in
-`bin/honeydb.json` and the `bin/from_id` checkpoint file are unchanged — if
-you replace the app directory wholesale, copy those two files over to the
-new version.
+Version 2.x is a drop-in replacement. Your configuration in
+`bin/honeydb.json` keeps working (see the credential store above for the
+preferred method — if you replace the app directory wholesale, copy
+`bin/honeydb.json` over or create a credential-store entry). The sensor-data
+checkpoint now lives at `$SPLUNK_HOME/var/lib/splunk/splunk_ta_honeydb/from_id`
+(outside the app directory, so upgrades can't lose it); a legacy
+`bin/from_id` file is migrated there automatically on first run.
 
 ## Install
 
 Place this app on your search head under `$SPLUNK_HOME/etc/apps/`
 Create the index on your indexer, see Create Indexes section below for instructions.
 
-In order for the app to pull data from HoneyDB you must add your API keys to the configuration. There are two files used to configure the app:
+In order for the app to pull data from HoneyDB you must configure your API credentials.
 
-- `bin/honeydb.json`
-- `default/inputs.conf`
+**Recommended: Splunk credential store (encrypted).** Create a credential in
+the app's context with realm `splunk_ta_honeydb`, username = your API ID,
+password = your API Key:
 
-At minimum, and recommended, you only need to add your HoneyDB API ID and API Key to `bin/honeydb.json`.
+    curl -k -u admin https://localhost:8089/servicesNS/nobody/splunk_ta_honeydb/storage/passwords \
+        -d realm=splunk_ta_honeydb -d name=<your API ID> -d password="<your API Key>"
+
+The inputs read the store via the session key provided by
+`passAuth = splunk-system-user` — no secret is written to disk. The
+`subscription` setting (not a secret) still lives in `bin/honeydb.json`.
+
+**Deprecated fallback: `bin/honeydb.json`.** If no credential-store entry
+exists, the app reads API keys from `bin/honeydb.json` as in earlier
+versions. Existing installs keep working unchanged; `honeydb.log` states
+which source was used.
 
 __Configuration file: `bin/honeydb.json`__
 

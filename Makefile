@@ -22,6 +22,7 @@ smoke-test:
 lint:
 	pylint splunk_ta_honeydb/bin/spl_honeydb_badhosts.py
 	pylint splunk_ta_honeydb/bin/spl_honeydb_sensor_data.py
+	pylint splunk_ta_honeydb/bin/honeydb_common.py
 
 clean:
 	-rm splunk_ta_honeydb.tar.gz
