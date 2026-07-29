@@ -83,7 +83,12 @@ Create indexes.conf on your indexer with the default index name "honeydb" Below 
     #14 day retention
     #frozenTimePeriodInSecs = 1209600
 
-__**NOTE:__ If you change the index name, make sure you update `default/inputs.conf` to reflect the new index name, e.g. `index = <new index name >`
+__**NOTE:__ If you change the index name, update `default/inputs.conf` to
+reflect the new index name (e.g. `index = <new index name>`) and override
+the dashboard search scope once in `local/macros.conf` (survives upgrades):
+
+    [honeydb_index]
+    definition = index=<new index name>
 
 ## Viewing data in Splunk
 

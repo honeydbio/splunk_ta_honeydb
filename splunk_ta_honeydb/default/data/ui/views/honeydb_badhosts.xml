@@ -5,7 +5,7 @@
       <title>Top 10 Remote Hosts</title>
       <chart>
         <search>
-          <query>index=honeydb sourcetype="honeydb_badhosts"
+          <query>`honeydb_index` sourcetype="honeydb_badhosts"
 |  sort -last_seen -count  | fields remote_host, count, last_seen
 | stats sum(count) as event_count by last_seen remote_host 
 | sort -event_count 
@@ -23,7 +23,7 @@
       <title>Activity By Last Seen Date</title>
       <chart>
         <search>
-          <query>index=honeydb sourcetype="honeydb_badhosts" 
+          <query>`honeydb_index` sourcetype="honeydb_badhosts" 
 | sort -_time, last_seen
 | dedup last_seen remote_host 
 | stats sum(count) as event_count by last_seen 
@@ -44,7 +44,7 @@
       <chart>
         <title>Last 7 Days</title>
         <search>
-          <query>index=honeydb sourcetype="honeydb_badhosts" | fields remote_host, count, last_seen 
+          <query>`honeydb_index` sourcetype="honeydb_badhosts" | fields remote_host, count, last_seen 
 | stats distinct_count(remote_host) as remote_hosts by last_seen</query>
           <earliest>-7d@h</earliest>
           <latest>now</latest>
@@ -61,7 +61,7 @@
       <title>Top 10 Remote Hosts</title>
       <table>
         <search>
-          <query>index=honeydb sourcetype="honeydb_badhosts"
+          <query>`honeydb_index` sourcetype="honeydb_badhosts"
 |  sort -last_seen -count  | fields remote_host, count, last_seen
 | stats sum(count) as event_count by last_seen remote_host 
 | sort -event_count 
@@ -80,7 +80,7 @@
       <title>Activity By Last Seen Date</title>
       <table>
         <search>
-          <query>index=honeydb sourcetype="honeydb_badhosts"
+          <query>`honeydb_index` sourcetype="honeydb_badhosts"
 | sort -_time, last_seen
 | dedup last_seen remote_host 
 | stats sum(count) as event_count by last_seen 
