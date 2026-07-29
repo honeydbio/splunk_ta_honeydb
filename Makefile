@@ -16,6 +16,9 @@ inspect:
 	.env/bin/pip install splunk-appinspect
 	.env/bin/splunk-appinspect inspect splunk_ta_honeydb.tar.gz
 
+test:
+	python3 -m unittest discover -s tests -v
+
 smoke-test:
 	sh smoke_test.sh
 
