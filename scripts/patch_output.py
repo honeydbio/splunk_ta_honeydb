@@ -3,6 +3,8 @@ Post-build fixups on the ucc-gen output (run by `make build`):
 - strip compiled-python artifacts (appinspect failure if packaged)
 - add python.required to the generated restmap.conf handler stanzas
   (appinspect future-failure; ucc-gen does not emit it yet)
+- add requires_splunk_version to the generated app.conf [launcher] stanza
+  (ucc-gen has no field for it; see app_conf.template)
 
 Known unfixable appinspect finding: check_for_custom_mako_templates
 ------------------------------------------------------------------
@@ -53,6 +55,10 @@ import shutil
 OUTPUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                       'output', 'splunk_ta_honeydb')
 PYTHON_REQUIRED = 'python.required = 3.9, 3.13'
+# Floor is the UCC 6.x React config UI and the dark-theme support declared via
+# [ui] supported_themes, both of which want Splunk 9. The conf settings alone
+# would run on 8.0 (python.version = python3), but the UI would not.
+REQUIRES_SPLUNK_VERSION = 'requires_splunk_version = 9.0'
 
 
 def strip_pycache():
@@ -79,7 +85,24 @@ def patch_restmap():
         conf.write('\n'.join(patched) + '\n')
 
 
+def patch_app_conf():
+    path = os.path.join(OUTPUT, 'default', 'app.conf')
+    with open(path, encoding='utf-8') as conf:
+        lines = conf.read().splitlines()
+    if any(line.strip().startswith('requires_splunk_version') for line in lines):
+        return
+    patched = []
+    for line in lines:
+        patched.append(line)
+        if line.strip() == '[launcher]':
+            patched.append(REQUIRES_SPLUNK_VERSION)
+    with open(path, 'w', encoding='utf-8') as conf:
+        conf.write('\n'.join(patched) + '\n')
+
+
 if __name__ == '__main__':
     strip_pycache()
     patch_restmap()
-    print('output patched: pycache stripped, restmap python.required added')
+    patch_app_conf()
+    print('output patched: pycache stripped, restmap python.required and '
+          'app.conf requires_splunk_version added')
